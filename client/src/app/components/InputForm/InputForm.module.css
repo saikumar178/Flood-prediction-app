@@ -1,0 +1,97 @@
+.card {
+  background-color: var(--card-bg-color);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px var(--shadow-color);
+  border: 1px solid var(--card-border-color);
+}
+
+.card h2 {
+  margin-bottom: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.status {
+  margin-bottom: 1.5rem;
+  font-size: 0.9rem;
+  color: #6c757d;
+  min-height: 20px;
+}
+
+.formGroup {
+  margin-bottom: 1.25rem;
+}
+
+.label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--input-border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
+}
+
+.button {
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.8rem 1rem;
+  border: none;
+  border-radius: 8px;
+  background-color: var(--primary-color);
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+.button:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+}
+
+.button:disabled {
+  background: #adb5bd;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.resultContainer {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.resultSafe {
+  background-color: #d1e7dd;
+  color: #0f5132;
+  border: 1px solid #badbcc;
+}
+
+.resultDanger {
+  background-color: #f8d7da;
+  color: #842029;
+  border: 1px solid #f5c2c7;
+}
+
+.loading {
+  margin-top: 1.5rem;
+  text-align: center;
+  color: #6c757d;
+}
