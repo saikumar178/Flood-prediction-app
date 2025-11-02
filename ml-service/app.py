@@ -1,44 +1,40 @@
 from flask import Flask, request, jsonify
+import joblib
+import numpy as np
 
 app = Flask(__name__)
 
-# TODO: In the future, you will load your saved model file here
-# import joblib
-# model = joblib.load('model.pkl')
+# ✅ Load ML model
+model = joblib.load("model.pkl")
+
+
+@app.route('/', methods=['GET'])
+def hello():
+    return 'Nothing Found'
 
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    # Get the data from the POST request sent by the Express server
-    data = request.get_json()
-    
-    # Print the data to the terminal for debugging
-    print(f"Received data for prediction: {data}")
-    
-    # --- MOCK PREDICTION LOGIC ---
-    # This is a placeholder. Here, you would normally process the data
-    # and feed it to your loaded model like: `prediction = model.predict(processed_data)`
-    
-    # For now, we'll return a fake result based on the rainfall
     try:
-        rainfall = data.get('rainfall', 0)
-        if rainfall > 50:
-            mock_result = {
-                "prediction": "Flood Likely",
-                "probability": 0.85
-            }
-        else:
-            mock_result = {
-                "prediction": "No Flood Expected",
-                "probability": 0.15
-            }
-        return jsonify(mock_result)
+        data = request.get_json()
 
+        rainfall = float(data.get("rainfall"))
+        river_level = float(data.get("river_level"))
+        temp = float(data.get("temperature"))
+        humidity = float(data.get("humidity"))
+
+        features = np.array([[rainfall, river_level, temp, humidity]])
+        prediction = model.predict(features)[0]
+        proba = model.predict_proba(features)[0][1]
+
+        return jsonify({
+            "prediction": "Flood Likely" if prediction == 1 else "No Flood",
+            "probability": round(float(proba), 4)
+        })
+    
     except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({"error": "An error occurred during prediction."}), 500
+        return jsonify({"error": str(e)}), 500
 
 
-if __name__ == '__main__':
-    # Runs the app on port 5000
-    app.run(debug=True)
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=5000)
