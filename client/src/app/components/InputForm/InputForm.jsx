@@ -1,105 +1,162 @@
 "use client";
-
-import { useState, useEffect } from 'react';
-import styles from './InputForm.module.css';
+import { useState, useEffect } from "react";
+import styles from "./InputForm.module.css";
 
 export default function InputForm() {
-  // State for all form fields
-  const [rainfall, setRainfall] = useState('');
-  const [riverLevel, setRiverLevel] = useState('');
-  const [temperature, setTemperature] = useState('');
-  const [humidity, setHumidity] = useState('');
+  const [rainfall, setRainfall] = useState("");
+  const [riverLevel, setRiverLevel] = useState("");
+  const [temperature, setTemperature] = useState("");
+  const [humidity, setHumidity] = useState("");
 
-  // State for UI feedback
-  const [statusMessage, setStatusMessage] = useState('Awaiting location permission...');
+  const [status, setStatus] = useState("⏳ Fetching location...");
   const [isLoading, setIsLoading] = useState(false);
-  const [predictionResult, setPredictionResult] = useState(null);
+  const [todayPrediction, setTodayPrediction] = useState(null);
+  const [todayProbability, setTodayProbability] = useState(null);
+  const [forecast, setForecast] = useState([]);
 
   useEffect(() => {
-    // This effect runs once when the component mounts to get the user's location
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        // Success Callback: This runs if the user approves the location request
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          setStatusMessage('Fetching current weather...');
-          
-          try {
-            // Call your Express backend route with the coordinates
-            const response = await fetch(`http://localhost:3001/api/weather?lat=${latitude}&lon=${longitude}`);
-            if (!response.ok) {
-              throw new Error('Network response from server was not ok');
-            }
-            
-            const weatherData = await response.json();
-            
-            // Auto-fill the form with the fetched data
-            setTemperature(weatherData.current.temperature_2m);
-            setHumidity(weatherData.current.relative_humidity_2m);
-            setRainfall(weatherData.current.precipitation);
-            setStatusMessage('Weather data filled automatically. Please enter river level.');
-
-          } catch (error) {
-            setStatusMessage('Could not fetch weather. Please enter all data manually.');
-            console.error("Fetch Error:", error);
-          }
-        },
-        // Error Callback: This runs if the user denies permission
-        () => {
-          setStatusMessage('Location access denied. Please enter data manually.');
-        }
-      );
-    } else {
-      // This runs if the browser doesn't support geolocation
-      setStatusMessage('Geolocation is not supported by your browser.');
+    if (!navigator.geolocation) {
+      setStatus("⚠️ Geolocation not supported");
+      return;
     }
-  }, []); // The empty array [] ensures this effect runs only once
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const { latitude, longitude } = position.coords;
+
+        try {
+          const res = await fetch(
+            `http://localhost:3001/api/weather?lat=${latitude}&lon=${longitude}`
+          );
+          const weather = await res.json();
+
+          setTemperature(weather.current.temperature_2m);
+          setHumidity(weather.current.relative_humidity_2m);
+          setRainfall(weather.current.precipitation);
+
+          // ✅ correctly read backend `future`
+          setForecast(weather.future.slice(0, 7));
+
+          setStatus("✅ Weather auto-filled — enter river level");
+        } catch {
+          setStatus("⚠️ Weather fetch failed. Enter manually.");
+        }
+      },
+      () => setStatus("⚠️ Location denied — enter manually")
+    );
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setPredictionResult(null);
+    setTodayPrediction(null);
 
-    // This is a MOCK API call to simulate getting a prediction
-    console.log("Submitting:", { rainfall, riverLevel, temperature, humidity });
-    setTimeout(() => {
-      const mockPrediction = Math.random() > 0.5 ? "Flood Likely" : "No Flood Expected";
-      setPredictionResult(mockPrediction);
-      setIsLoading(false);
-    }, 2000); // Simulate a 2-second delay
+    // ✅ Today's prediction
+    const res = await fetch("http://localhost:3001/api/predict", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        rainfall: Number(rainfall),
+        river_level: Number(riverLevel),
+        temperature: Number(temperature),
+        humidity: Number(humidity),
+      }),
+    });
+
+    const today = await res.json();
+    setTodayPrediction(today.prediction);
+    setTodayProbability(today.probability);
+
+    // ✅ Predict for next 7 days
+    const updated = [];
+    for (const day of forecast) {
+      const r = await fetch("http://localhost:3001/api/predict", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          rainfall: Number(day.rain),
+          river_level: Number(riverLevel),
+          temperature: Number(day.temp),
+          humidity: Number(day.humidity),
+        }),
+      });
+
+      const pd = await r.json();
+      updated.push({ ...day, prediction: pd.prediction, probability: pd.probability });
+    }
+
+    setForecast(updated);
+    setIsLoading(false);
   };
 
   return (
     <div className={styles.card}>
-      <h2>Enter Current Conditions</h2>
-      <p className={styles.status}>{statusMessage}</p>
-      <form onSubmit={handleSubmit}>
-        <div className={styles.formGroup}>
-          <label htmlFor="temperature" className={styles.label}>Temperature (°C):</label>
-          <input type="number" id="temperature" className={styles.input} value={temperature} onChange={(e) => setTemperature(e.target.value)} required />
+      <h2 className={styles.heading}>🌧️ AI Flood Predictor</h2>
+      <p className={styles.status}>{status}</p>
+
+      <form className={styles.form} onSubmit={handleSubmit}>
+        <div className={styles.group}>
+          <label className={styles.label}>Temperature (°C)</label>
+          <input className={styles.input} type="number" value={temperature} onChange={e => setTemperature(e.target.value)} required />
         </div>
-        <div className={styles.formGroup}>
-          <label htmlFor="humidity" className={styles.label}>Humidity (%):</label>
-          <input type="number" id="humidity" className={styles.input} value={humidity} onChange={(e) => setHumidity(e.target.value)} required />
+
+        <div className={styles.group}>
+          <label className={styles.label}>Humidity (%)</label>
+          <input className={styles.input} type="number" value={humidity} onChange={e => setHumidity(e.target.value)} required />
         </div>
-        <div className={styles.formGroup}>
-          <label htmlFor="rainfall" className={styles.label}>Rainfall (mm):</label>
-          <input type="number" id="rainfall" className={styles.input} value={rainfall} onChange={(e) => setRainfall(e.target.value)} required />
+
+        <div className={styles.group}>
+          <label className={styles.label}>Rainfall (mm)</label>
+          <input className={styles.input} type="number" value={rainfall} onChange={e => setRainfall(e.target.value)} required />
         </div>
-        <div className={styles.formGroup}>
-          <label htmlFor="riverLevel" className={styles.label}>River Level (m):</label>
-          <input type="number" id="riverLevel" className={styles.input} value={riverLevel} onChange={(e) => setRiverLevel(e.target.value)} placeholder="Manual entry required" required />
+
+        <div className={styles.group}>
+          <label className={styles.label}>River Level (m)</label>
+          <input className={styles.input} type="number" value={riverLevel} onChange={e => setRiverLevel(e.target.value)} required />
+          <p className={styles.note}>If no river, enter 0</p>
         </div>
-        <button type="submit" className={styles.button} disabled={isLoading}>
-          {isLoading ? 'Predicting...' : 'Predict Flood Risk'}
+
+        <button className={styles.btn} disabled={isLoading}>
+          {isLoading ? "⏳ Predicting..." : "🔍 Predict Flood Risk"}
         </button>
       </form>
 
-      {isLoading && <p className={styles.loading}>Analyzing data...</p>}
-      {predictionResult && (
-        <div className={`${styles.resultContainer} ${predictionResult === 'Flood Likely' ? styles.resultDanger : styles.resultSafe}`}>
-          {predictionResult}
+      {todayPrediction && (
+        <div className={todayPrediction.includes("Flood") ? styles.danger : styles.safe}>
+          {todayPrediction} ({todayProbability})
         </div>
+      )}
+
+      {forecast.length > 0 && (
+        <>
+          <h3 className={styles.subheading}>📅 7-Day Flood Prediction</h3>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th className={styles.th}>Date</th>
+                <th className={styles.th}>Temp (°C)</th>
+                <th className={styles.th}>Humidity (%)</th>
+                <th className={styles.th}>Rain (mm)</th>
+                <th className={styles.th}>Prediction</th>
+                <th className={styles.th}>Probability</th>
+              </tr>
+            </thead>
+            <tbody>
+              {forecast.map((d, i) => (
+                <tr key={i} className={styles.row}>
+                  <td className={styles.td}>{d.date}</td>
+                  <td className={styles.td}>{d.temp}</td>
+                  <td className={styles.td}>{d.humidity}</td>
+                  <td className={styles.td}>{d.rain}</td>
+                  <td className={`${styles.td} ${d.prediction?.includes("Flood") ? styles.dangertxt : styles.safetxt}`}>
+                    {d.prediction}
+                  </td>
+                  <td className={styles.td}>{d.probability}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </>
       )}
     </div>
   );

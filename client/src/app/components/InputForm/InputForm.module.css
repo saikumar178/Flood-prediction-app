@@ -1,97 +1,118 @@
 .card {
-  background-color: var(--card-bg-color);
-  padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px var(--shadow-color);
-  border: 1px solid var(--card-border-color);
+  background: white;
+  padding: 24px;
+  border-radius: 14px;
+  border: 1px solid #1f2a44;
+  box-shadow: 0 4px 15px rgba(20, 6, 124, 0.4);
+  color: black;
+  width: 100%;
 }
 
-.card h2 {
-  margin-bottom: 0.5rem;
-  font-size: 1.5rem;
-  font-weight: 600;
+.heading {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 6px;
 }
 
 .status {
-  margin-bottom: 1.5rem;
-  font-size: 0.9rem;
-  color: #6c757d;
-  min-height: 20px;
+  font-size: 0.95rem;
+  margin-bottom: 15px;
+  color: #90a5c7;
 }
 
-.formGroup {
-  margin-bottom: 1.25rem;
+.group {
+  margin-bottom: 1rem;
 }
 
 .label {
+  margin-bottom: 6px;
   display: block;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
+  font-weight: 600;
 }
 
 .input {
   width: 100%;
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--input-border-color);
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  padding: 10px;
+  background: white;
+  border: 1px solid #274067;
+  border-radius: 6px;
+  color: black;
 }
 
-.input:focus {
-  outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.2);
-}
-
-.button {
+.btn {
+  background: #007bff;
   width: 100%;
-  margin-top: 1rem;
-  padding: 0.8rem 1rem;
+  padding: 12px;
   border: none;
-  border-radius: 8px;
-  background-color: var(--primary-color);
   color: white;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.2s, transform 0.2s;
-}
-
-.button:hover {
-  background-color: var(--primary-hover);
-  transform: translateY(-2px);
-}
-
-.button:disabled {
-  background: #adb5bd;
-  cursor: not-allowed;
-  transform: none;
-}
-
-.resultContainer {
-  margin-top: 1.5rem;
-  padding: 1rem;
   border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  background: #4b5c80;
+}
+
+.note {
+  font-size: 0.85rem;
+  margin-top: 2px;
+  opacity: 0.8;
+}
+
+.safe {
+  margin-top: 12px;
+  background: #d1e7dd;
+  color: #0f5132;
+  padding: 12px;
+  border-radius: 6px;
   text-align: center;
-  font-size: 1.1rem;
+}
+
+.danger {
+  margin-top: 12px;
+  background: #f8d7da;
+  color: #842029;
+  padding: 12px;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.subheading {
+  font-size: 1.25rem;
+  margin-top: 20px;
+  margin-bottom: 10px;
   font-weight: 600;
 }
 
-.resultSafe {
-  background-color: #d1e7dd;
-  color: #0f5132;
-  border: 1px solid #badbcc;
+.table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.resultDanger {
-  background-color: #f8d7da;
-  color: #842029;
-  border: 1px solid #f5c2c7;
+.th {
+  text-align: left;
+  background: #162138;
+  padding: 10px;
+  color: #a9c4ee;
 }
 
-.loading {
-  margin-top: 1.5rem;
-  text-align: center;
-  color: #6c757d;
+.td {
+  padding: 10px;
+  border-bottom: 1px solid #1b2944;
 }
+
+.row:hover {
+  background: grey;
+}
+
+.safetxt {
+  color: #4cc26b;
+  font-weight: 700;
+}
+
+.dangertxt {
+  color: #ff4a4a;
+  font-weight: 700;
+}
+
