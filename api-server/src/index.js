@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const weatherRoutes = require('./routes/weather');
+const predictRoutes = require('./routes/predict')
 
 const app = express();
 const PORT = 3001;
@@ -13,6 +14,7 @@ app.use(express.json());
 
 // --- Routes ---
 app.use('/api/weather', weatherRoutes);
+app.use('/api/predict',predictRoutes);
 
 // TODO: Create and use a /api/predict route that calls the Python service
 
