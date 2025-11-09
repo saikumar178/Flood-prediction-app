@@ -4,37 +4,35 @@ import numpy as np
 
 app = Flask(__name__)
 
-# ✅ Load ML model
+# Load the trained model
 model = joblib.load("model.pkl")
-
-
-@app.route('/', methods=['GET'])
-def hello():
-    return 'Nothing Found'
 
 
 @app.route('/predict', methods=['POST'])
 def predict():
+    data = request.get_json()
+
     try:
-        data = request.get_json()
+        rainfall = float(data.get('rainfall', 0))
+        temperature = float(data.get('temperature', 0))
+        humidity = float(data.get('humidity', 0))
+        elevation = float(data.get('elevation', 0))
+        month = int(data.get('month', 1))
 
-        rainfall = float(data.get("rainfall"))
-        river_level = float(data.get("river_level"))
-        temp = float(data.get("temperature"))
-        humidity = float(data.get("humidity"))
-
-        features = np.array([[rainfall, river_level, temp, humidity]])
+        features = np.array([[rainfall, temperature, humidity, elevation, month]])
         prediction = model.predict(features)[0]
         proba = model.predict_proba(features)[0][1]
 
-        return jsonify({
+        result = {
             "prediction": "Flood Likely" if prediction == 1 else "No Flood",
-            "probability": round(float(proba), 4)
-        })
-    
+            "probability": round(float(proba), 3)
+        }
+
+        return jsonify(result)
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(debug=True)
