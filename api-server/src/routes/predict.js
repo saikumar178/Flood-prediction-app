@@ -4,22 +4,23 @@ const router = express.Router();
 
 router.post("/", async (req, res) => {
   try {
-    const { rainfall, river_level, temperature, humidity } = req.body;
+    const { district, month, rainfall, temperature, humidity, elevation } = req.body;
 
     const response = await axios.post("http://127.0.0.1:5000/predict", {
+      district,
+      month,
       rainfall,
-      river_level,
       temperature,
-      humidity
+      humidity,
+      elevation
     });
 
-     res.json({
+    res.json({
       success: true,
-      prediction: response.data.prediction,  // ✅ match Flask key
-      probability: response.data.probability // ✅ optional field
+      ...response.data
     });
   } catch (err) {
-    console.error("Error calling Python service:", err.message);
+    console.error("Error calling Flask service:", err.message);
     res.status(500).json({ success: false, error: "Prediction service failed" });
   }
 });
