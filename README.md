@@ -35,37 +35,49 @@ It automatically detects the user's location, fetches live weather data, and pre
 ```plaintext
 /flood-prediction-app/
 │
+├── 📂 data/                              # 📊 Datasets (shared by ML + notebooks)
+│   ├── raw/
+│   │   └── india_districts_2500.csv      # Original dataset
+│   └── processed/
+│       └── flood_cleaned.csv             # Cleaned dataset used for training
+│
 ├── 📂 ml-service/                        # 🧠 Machine Learning + Flask API
 │   ├── app.py                            # Flask app exposing /predict
 │   ├── model.pkl                         # Trained model file
 │   ├── requirements.txt                  # Python dependencies
-│   ├── train_model.ipynb                 # Jupyter notebook (training)
-│   ├── 📂 data/
-│   │   ├── raw/
-│   │   │   └── india_districts_2500.csv  # Original dataset
-│   │   └── processed/
-│   │       └── flood_cleaned.csv         # Cleaned dataset for ML
-│   └── 📂 notebooks/
-│       ├── 1-Data_Exploration.ipynb
-│       └── 2-Model_Training.ipynb
 │
-├── 📂 api-server/                        # 🌐 Express.js middleware API
-│   ├── app.js                            # Main Express entry
+├── 📂 notebooks/                         # 📓 Jupyter experiments
+│   ├── 1-Data_Exploration.ipynb          # EDA and preprocessing
+│   ├── 2-Model_Training.ipynb            # Train and export model.pkl
+│   └── requirements.txt
+│
+├── 📂 api-server/                        # ⚙️ Express.js backend
+│   ├── index.js
 │   ├── 📂 routes/
-│   │   ├── weather.js                    # Fetches weather (Open-Meteo)
-│   │   └── predict.js                    # Connects to Flask ML API
-│   ├── package.json                      # Dependencies
-│   └── .env                              # Optional environment config
+│   │   ├── weather.js
+│   │   └── predict.js
+│   ├── package.json
+│   └── .env
 │
 ├── 📂 client/                            # 💻 Next.js frontend
-│   ├── package.json                      # Frontend dependencies
-│   ├── next.config.js                    # Next.js config
+│   ├── package.json
+│   ├── next.config.js
 │   ├── 📂 src/
 │   │   ├── app/
 │   │   │   ├── layout.jsx
 │   │   │   ├── page.jsx
 │   │   │   ├── globals.css
+│   │   │   ├── page.module.css
+│   │   │   └── 📂 about/
+│   │   │   │    ├── Page.jsx
+│   │   │   │    └── about.module.css
+│   │   │   └── 📂 dashboard/
+│   │   │   │    ├── Page.jsx
+│   │   │   │    └── dashboard.module.css
 │   │   │   └── 📂 components/
+│   │   │       ├── Navbar/
+│   │   │       │   ├── Navbar.jsx
+│   │   │       │   └── Navbar.module.css
 │   │   │       ├── InputForm/
 │   │   │       │   ├── InputForm.jsx
 │   │   │       │   └── InputForm.module.css
@@ -73,19 +85,21 @@ It automatically detects the user's location, fetches live weather data, and pre
 │   │   │           ├── ChartDisplay.jsx
 │   │   │           └── ChartDisplay.module.css
 │   │   └── 📂 utils/
-│   │       ├── districtMap.js            # Maps OSM names → dataset names
-│   │       └── districtList.js           # (optional dropdown list)
+│   │       ├── districtMap.js
+│   │       └── districtList.js
 │
-├── sys_design.jpg                        # System architecture diagram
+├── sys_design.jpg    
+├── sys_design_flood.jpg                        # System architecture diagram
 ├── .gitignore
 └── README.md
+
 ```
 
 ---
 
 ## ⚙️ System Design
 
-![System Architecture](sys_design.jpg)
+![System Architecture](sys_design_flood.jpg)
 
 ### Workflow
 1. 🌍 User opens the web app (Next.js)
