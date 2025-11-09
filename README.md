@@ -88,8 +88,8 @@ It automatically detects the user's location, fetches live weather data, and pre
 │   │       ├── districtMap.js
 │   │       └── districtList.js
 │
-├── sys_design.jpg    
-├── sys_design_flood.jpg                        # System architecture diagram
+├── sys_design.png    
+├── sys_design_flood.png                        # System architecture diagram
 ├── .gitignore
 └── README.md
 
@@ -99,7 +99,7 @@ It automatically detects the user's location, fetches live weather data, and pre
 
 ## ⚙️ System Design
 
-![System Architecture](sys_design_flood.jpg)
+![System Architecture](sys_design_flood.png)
 
 ### Workflow
 1. 🌍 User opens the web app (Next.js)
