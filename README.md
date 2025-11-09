@@ -108,7 +108,7 @@ It automatically detects the user's location, fetches live weather data, and pre
 4. 🗺️ District name standardized via `districtMap.js`  
 5. 📤 Request sent to Flask model  
 6. 🧠 ML model predicts flood likelihood  
-7. 📊 Frontend displays today's & next 7 days' results with charts
+7. 📊 Frontend displays today's & next 7 days' results and with charts in the dashboard section
 
 ---
 
@@ -329,9 +329,9 @@ PORT=3001
 ## 🧑‍💻 Author
 
 **S S Sai Kumar**  
-💻 Full-Stack Developer & ML Enthusiast  
+💻 Full-Stack Developer, Intrested in Blockchain,ML and Tech
 🌍 India  
-🚀 Focused on building tech for disaster management
+🚀 Focused on tech to build something new
 
 ---
 
