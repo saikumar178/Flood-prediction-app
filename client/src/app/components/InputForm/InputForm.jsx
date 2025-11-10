@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { districtMap } from "@/utils/districtMap"; // ✅ added mapping import
+import { districtMap } from "@/utils/districtMap";
 import styles from "./InputForm.module.css";
 
 export default function InputForm() {
@@ -14,13 +14,14 @@ export default function InputForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [todayPrediction, setTodayPrediction] = useState(null);
   const [forecast, setForecast] = useState([]);
+  const [showTable, setShowTable] = useState(false);
 
   const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
+    "January","February","March","April","May","June",
+    "July","August","September","October","November","December",
   ];
 
-  // ✅ Auto-detect location, district & weather
+  // ✅ Auto-detect district + weather + elevation
   useEffect(() => {
     const detectLocation = async () => {
       if (!navigator.geolocation) {
@@ -33,42 +34,57 @@ export default function InputForm() {
           const { latitude, longitude } = pos.coords;
 
           try {
-            // 🏙️ Reverse geocode to get district
+            // ✅ Reverse geocode district
             const geoRes = await fetch(
               `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
             );
-            const geoData = await geoRes.json();
+            const geo = await geoRes.json();
 
             const rawDistrict =
-              geoData.address.state_district ||
-              geoData.address.county ||
-              geoData.address.state ||
+              geo.address.state_district ||
+              geo.address.county ||
+              geo.address.state ||
               "Unknown District";
 
-            // ✅ Standardize district name using map
-            const standardizedDistrict = districtMap[rawDistrict] || rawDistrict;
-            setDistrict(standardizedDistrict);
+            const standardized = districtMap[rawDistrict] || rawDistrict;
+            setDistrict(standardized);
 
-            // 🌦️ Fetch weather data
+            // ✅ Get weather for today + next 7 days
             const weatherRes = await fetch(
               `http://localhost:3001/api/weather?lat=${latitude}&lon=${longitude}`
             );
-            const weather = await weatherRes.json();
+            const weatherData = await weatherRes.json();
 
-            setTemperature(weather.current.temperature_2m);
-            setHumidity(weather.current.relative_humidity_2m);
-            setRainfall(weather.current.precipitation);
+            setTemperature(weatherData.current.temperature_2m);
+            setHumidity(weatherData.current.relative_humidity_2m);
+            setRainfall(weatherData.current.precipitation);
 
-            // 🗓️ Set current month automatically
-            const currentMonth = new Date().toLocaleString("default", {
-              month: "long",
-            });
+            // ✅ Real 7-day forecast from backend
+            setForecast(weatherData.future);
+
+            // ✅ Auto month
+            const currentMonth = new Date().toLocaleString("default", { month: "long" });
             setMonth(currentMonth);
 
-            setStatus(`✅ Auto-filled: ${standardizedDistrict}, ${currentMonth}`);
+            // ✅ Auto ELEVATION (FULL FIX)
+            const elevRes = await fetch(
+              `https://api.open-meteo.com/v1/elevation?latitude=${latitude}&longitude=${longitude}`
+            );
+            const elevData = await elevRes.json();
+
+            let autoElevation = 0;
+            if (elevData?.data?.[0]?.elevation) {
+              autoElevation = elevData.data[0].elevation;
+            } else if (elevData?.elevation) {
+              autoElevation = elevData.elevation;
+            }
+
+            setElevation(autoElevation);
+
+            setStatus(`✅ Auto-filled: ${standardized}, ${currentMonth}`);
           } catch (err) {
-            console.error("Auto-detect failed:", err);
-            setStatus("⚠️ Failed to detect district/weather.");
+            console.error(err);
+            setStatus("⚠️ Could not auto-detect weather/district.");
           }
         },
         () => setStatus("⚠️ Location access denied.")
@@ -78,16 +94,17 @@ export default function InputForm() {
     detectLocation();
   }, []);
 
-  // ✅ Handle form submit
+  // ✅ Submit & prediction
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setTodayPrediction(null);
-    setForecast([]);
+    setShowTable(false);
 
     const monthNumber = months.indexOf(month) + 1;
 
     try {
+      // ✅ TODAY PREDICTION
       const res = await fetch("http://localhost:3001/api/predict", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -104,23 +121,9 @@ export default function InputForm() {
       const today = await res.json();
       setTodayPrediction(today);
 
-      // ✅ Simulated 7-day forecast with real future dates
-      const simulatedForecast = Array.from({ length: 7 }).map((_, i) => {
-        const date = new Date();
-        date.setDate(date.getDate() + i + 1); // tomorrow + onwards
-        const formattedDate = date.toISOString().split("T")[0]; // e.g., 2025-11-10
-      
-        return {
-          date: formattedDate,
-          temp: temperature - 1 + Math.random() * 2,
-          humidity: humidity - 3 + Math.random() * 5,
-          rain: rainfall - 5 + Math.random() * 10,
-        };
-      });
-
-
+      // ✅ 7-Day Predictions
       const updated = [];
-      for (const day of simulatedForecast) {
+      for (const day of forecast) {
         const r = await fetch("http://localhost:3001/api/predict", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -139,9 +142,9 @@ export default function InputForm() {
       }
 
       setForecast(updated);
+      setShowTable(true);
     } catch (err) {
-      console.error("Prediction failed:", err);
-      alert("Prediction service not reachable. Check Flask & Express servers.");
+      alert("Prediction service unavailable.");
     }
 
     setIsLoading(false);
@@ -153,6 +156,7 @@ export default function InputForm() {
       <p className={styles.status}>{status}</p>
 
       <form onSubmit={handleSubmit}>
+        {/* District */}
         <div className={styles.group}>
           <label className={styles.label}>District</label>
           <input
@@ -164,6 +168,7 @@ export default function InputForm() {
           />
         </div>
 
+        {/* Month */}
         <div className={styles.group}>
           <label className={styles.label}>Month</label>
           <select
@@ -172,57 +177,37 @@ export default function InputForm() {
             onChange={(e) => setMonth(e.target.value)}
             required
           >
-            <option value="">Select month</option>
-            {months.map((m, i) => (
-              <option key={i} value={m}>
-                {m}
-              </option>
+            <option value="">Select</option>
+            {months.map((m) => (
+              <option key={m}>{m}</option>
             ))}
           </select>
         </div>
 
+        {/* Weather Inputs */}
         <div className={styles.group}>
           <label className={styles.label}>Rainfall (mm)</label>
-          <input
-            className={styles.input}
-            type="number"
-            value={rainfall}
-            onChange={(e) => setRainfall(e.target.value)}
-            required
-          />
+          <input className={styles.input} type="number" value={rainfall}
+            onChange={(e) => setRainfall(e.target.value)} required />
         </div>
 
         <div className={styles.group}>
           <label className={styles.label}>Temperature (°C)</label>
-          <input
-            className={styles.input}
-            type="number"
-            value={temperature}
-            onChange={(e) => setTemperature(e.target.value)}
-            required
-          />
+          <input className={styles.input} type="number" value={temperature}
+            onChange={(e) => setTemperature(e.target.value)} required />
         </div>
 
         <div className={styles.group}>
           <label className={styles.label}>Humidity (%)</label>
-          <input
-            className={styles.input}
-            type="number"
-            value={humidity}
-            onChange={(e) => setHumidity(e.target.value)}
-            required
-          />
+          <input className={styles.input} type="number" value={humidity}
+            onChange={(e) => setHumidity(e.target.value)} required />
         </div>
 
+        {/* Elevation */}
         <div className={styles.group}>
           <label className={styles.label}>Elevation (m)</label>
-          <input
-            className={styles.input}
-            type="number"
-            value={elevation}
-            onChange={(e) => setElevation(e.target.value)}
-            required
-          />
+          <input className={styles.input} type="number" value={elevation}
+            onChange={(e) => setElevation(e.target.value)} required />
         </div>
 
         <button className={styles.btn} disabled={isLoading}>
@@ -230,6 +215,7 @@ export default function InputForm() {
         </button>
       </form>
 
+      {/* TODAY PREDICTION */}
       {todayPrediction && (
         <div
           className={`${styles.resultBox} ${
@@ -240,7 +226,8 @@ export default function InputForm() {
         </div>
       )}
 
-      {forecast.length > 0 && (
+      {/* TABLE ONLY AFTER CLICK */}
+      {showTable && forecast.length > 0 && (
         <>
           <h3 className={styles.subheading}>📅 Next 7-Day Prediction</h3>
           <table className={styles.table}>
@@ -258,9 +245,9 @@ export default function InputForm() {
               {forecast.map((d, i) => (
                 <tr key={i}>
                   <td>{d.date}</td>
-                  <td>{d.temp.toFixed(1)}</td>
-                  <td>{d.humidity.toFixed(1)}</td>
-                  <td>{d.rain.toFixed(1)}</td>
+                  <td>{d.temp}</td>
+                  <td>{d.humidity}</td>
+                  <td>{d.rain}</td>
                   <td
                     className={
                       d.prediction === "Flood Likely"

@@ -5,22 +5,33 @@ const router = express.Router();
 router.get('/', async (req, res) => {
   const { lat, lon } = req.query;
 
-  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,precipitation&daily=precipitation_sum,temperature_2m_max,relative_humidity_2m_mean&timezone=auto&forecast_days=7`;
+  if (!lat || !lon) {
+    return res.status(400).json({ error: "lat & lon required" });
+  }
 
-  const r = await axios.get(url);
-  const d = r.data;
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,relative_humidity_2m,precipitation&daily=temperature_2m_max,relative_humidity_2m_mean,precipitation_sum&timezone=auto&forecast_days=7`;
 
-  const future = d.daily.time.map((date, i) => ({
-    date,
-    temp: d.daily.temperature_2m_max[i],
-    humidity: d.daily.relative_humidity_2m_mean[i],
-    rain: d.daily.precipitation_sum[i],
-  }));
+  try {
+    const r = await axios.get(url);
+    const d = r.data;
 
-  res.json({
-    current: d.current,
-    future,
-  });
+    // ✅ Create future forecast array
+    const future = d.daily.time.map((date, i) => ({
+      date,
+      temp: d.daily.temperature_2m_max[i],
+      humidity: d.daily.relative_humidity_2m_mean[i],
+      rain: Math.max(0, Number(d.daily.precipitation_sum[i])), // never negative
+    }));
+
+    res.json({
+      current: d.current,
+      future,
+    });
+
+  } catch (err) {
+    console.error("Weather fetch failed:", err.message);
+    res.status(500).json({ error: "Failed to fetch weather" });
+  }
 });
 
 module.exports = router;
