@@ -1,6 +1,6 @@
 # 🌊 Flood Prediction App
 
-An end-to-end **AI-powered Flood Risk Prediction System** that integrates **Machine Learning (Flask)**, **Express.js (Node.js)**, and **Next.js (React)** — providing real-time flood forecasting based on weather and location data.
+An end-to-end **AI-powered Flood Risk Prediction System** that integrates **Machine Learning (FastAPI)**, **Express.js (Node.js)**, and **Next.js (React)** — providing real-time flood forecasting based on weather and location data.
 
 ---
 
@@ -23,8 +23,8 @@ It automatically detects the user's location, fetches live weather data, and pre
 | Layer | Technology | Purpose |
 |-------|-------------|----------|
 | **Frontend** | Next.js (React) | User interface, location detection, prediction dashboard |
-| **Backend** | Express.js | API middleware between Flask and frontend |
-| **ML Service** | Flask + Scikit-learn | Model prediction endpoint |
+| **Backend** | Express.js | API middleware between FastAPI and frontend |
+| **ML Service** | FastAPI + Scikit-learn | Model prediction endpoint |
 | **Dataset** | CSV (India districts data) | Training and feature data |
 | **External API** | Open-Meteo | Real-time weather data |
 
@@ -41,8 +41,8 @@ It automatically detects the user's location, fetches live weather data, and pre
 │   └── processed/
 │       └── flood_cleaned.csv             # Cleaned dataset used for training
 │
-├── 📂 ml-service/                        # 🧠 Machine Learning + Flask API
-│   ├── app.py                            # Flask app exposing /predict
+├── 📂 ml-service/                        # 🧠 Machine Learning + FastAPI
+│   ├── app.py                            # FastAPI app exposing /predict
 │   ├── model.pkl                         # Trained model file
 │   ├── requirements.txt                  # Python dependencies
 │
@@ -99,14 +99,14 @@ It automatically detects the user's location, fetches live weather data, and pre
 
 ## ⚙️ System Design
 
-![System Architecture](sys_design_flood.png)
+![System Architecture](sys_des.png)
 
 ### Workflow
 1. 🌍 User opens the web app (Next.js)
 2. 🛰️ Browser auto-detects location  
 3. 🌦️ Express backend fetches weather data from Open-Meteo  
 4. 🗺️ District name standardized via `districtMap.js`  
-5. 📤 Request sent to Flask model  
+5. 📤 Request sent to FastAPI model  
 6. 🧠 ML model predicts flood likelihood  
 7. 📊 Frontend displays today's & next 7 days' results and with charts in the dashboard section
 
@@ -122,7 +122,7 @@ cd Flood-prediction-app
 
 ---
 
-### 2️⃣ 🧠 Setup the ML Service (Flask)
+### 2️⃣ 🧠 Setup the ML Service (FastAPI)
 
 ```bash
 cd ml-service
@@ -132,11 +132,11 @@ venv\Scripts\activate       # (Windows)
 source venv/bin/activate      # (Linux/Mac)
 
 pip install -r requirements.txt
-python app.py
+uvicorn app:app --reload --host 0.0.0.0 --port 8000
 ```
 
-**Flask runs at:**  
-👉 `http://127.0.0.1:5000/predict`
+**FastAPI runs at:**  
+👉 `http://127.0.0.1:8000/predict`
 
 ---
 
@@ -152,7 +152,7 @@ node app.js
 👉 `http://localhost:3001`  
 Routes:
 - `/api/weather` → fetches weather data  
-- `/api/predict` → communicates with Flask
+- `/api/predict` → communicates with FastAPI
 
 ---
 
@@ -169,10 +169,10 @@ npm run dev
 
 ---
 
-## 🧮 Flask API Example
+## 🧮 FastAPI Example
 
 **POST Request:**  
-`http://127.0.0.1:5000/predict`
+`http://127.0.0.1:8000/predict`
 
 **Body Example:**
 ```json
@@ -224,13 +224,14 @@ npm run dev
 
 ## 🧰 Dependencies
 
-### 🧠 Flask (`ml-service/requirements.txt`)
+### 🧠 FastAPI (`ml-service/requirements.txt`)
 ```
-Flask
-scikit-learn
-pandas
-numpy
-joblib
+fastapi==0.111.0
+pydantic
+uvicorn[standard]==0.29.0
+joblib==1.4.2
+numpy==1.26.4
+scikit-learn==1.5.0
 ```
 
 ### ⚙️ Express (`api-server/package.json`)
@@ -299,7 +300,7 @@ export const districtMap = {
 In `/api-server/.env`:
 
 ```
-FLASK_URL=http://127.0.0.1:5000
+FAST_API=http://127.0.0.1:8000
 PORT=3001
 ```
 
@@ -309,8 +310,8 @@ PORT=3001
 
 | Command | Description |
 |----------|-------------|
-| `python app.py` | Run Flask ML service |
-| `node app.js` | Run Express backend |
+| `uvicorn app:app --reload --host 0.0.0.0 --port 8000` | Run FastAPI ML service |
+| `npm start` | Run Express backend |
 | `npm run dev` | Run Next.js frontend |
 | `jupyter notebook` | Open notebooks |
 
