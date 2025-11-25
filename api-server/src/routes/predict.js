@@ -6,7 +6,7 @@ router.post("/", async (req, res) => {
   try {
     const { district, month, rainfall, temperature, humidity, elevation } = req.body;
 
-    const response = await axios.post("http://127.0.0.1:5000/predict", {
+    const response = await axios.post("http://127.0.0.1:8000/predict", {
       district,
       month,
       rainfall,
